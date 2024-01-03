@@ -1,7 +1,6 @@
 from qna3 import Qna3
 import random
 import time
-import art
 from utils import *
 import asyncio
 
@@ -13,14 +12,6 @@ async def process_private_key(private_key, proxies, semaphore):
         result = await qna3_bot.verify_transaction()
         print(f"{qna3_bot.account.address} | {result} | {qna3_bot.proxy_ip}")
         await qna3_bot.close_session()
-
-
-def make_art():
-    art_text = art.text2art('Qna3')
-    lines = "-" * len(art_text.split('\n')[0])
-    print(f"{lines}\n{art_text}{lines}")
-    print('Создатель: https://t.me/Genjurx')
-
 
 async def main():
     make_art()
