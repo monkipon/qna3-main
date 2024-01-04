@@ -3,9 +3,12 @@ import pyuseragents
 from web3utils import *
 from config import REFFERAL_CODE
 
+
 class Qna3:
     def __init__(self, key, proxy: str = None):
         self.credit = None
+        self.checkInDays = None
+        self.todayCount = None
         self.token = None
         self.account = Web3Utils(key=key, is_async=True)
         self.account.define_new_provider('https://opbnb.publicnode.com')
@@ -33,9 +36,9 @@ class Qna3:
             json_data = {
                 'wallet_address': self.account.address,
                 'signature': self.account.get_signed_code(msg),
+                'invite_code': REFFERAL_CODE,
             }
-            if REFFERAL_CODE.strip():
-                json_data['invite_code'] = REFFERAL_CODE
+
             params = {
                 'via': 'wallet',
             }
@@ -43,21 +46,39 @@ class Qna3:
             url = "https://api.qna3.ai/api/v2/auth/login"
             response = await self.session.post(url, json=json_data, params=params)
             response_data = await response.json()
-            self.token = response_data['data']['accessToken']
-            self.session.headers.update({'Authorization': f'Bearer {self.token}'})
+            self.token = response_data.get('data', {}).get('accessToken')
+            if self.token:
+                self.session.headers.update({'Authorization': f'Bearer {self.token}'})
+            else:
+                print("Error in get_token(): Access token not found in response data")
         except Exception as ex:
             print(f"Error in get_token(): {ex}")
 
-    async def get_info(self):
+    async def get_graphl(self):
         if self.token is None:
             await self.get_token()
-        url = 'https://api.qna3.ai/user/credit'
+        url = 'https://api.qna3.ai/api/v2/graphql'
+        json_data = {
+            'query': 'query loadUserDetail($cursored: CursoredRequestInput!) {\n  userDetail {\n    checkInStatus {\n      checkInDays\n      todayCount\n    }\n    credit\n    creditHistories(cursored: $cursored) {\n      cursorInfo {\n        endCursor\n        hasNextPage\n      }\n      items {\n        claimed\n        extra\n        id\n        score\n        signDay\n        signInId\n        txHash\n        typ\n      }\n      total\n    }\n    invitation {\n      code\n      inviteeCount\n      leftCount\n    }\n    origin {\n      email\n      id\n      internalAddress\n      userWalletAddress\n    }\n    externalCredit\n    voteHistoryOfCurrentActivity {\n      created_at\n      query\n    }\n    ambassadorProgram {\n      bonus\n      claimed\n      family {\n        checkedInUsers\n        totalUsers\n      }\n    }\n  }\n}',
+            'variables': {
+                'headersMapping': {
+                    'x-lang': 'english',
+                    'Authorization': f'Bearer {self.token}',
+                },
+                'cursored': {
+                    'after': '',
+                    'first': 20,
+                },
+            },
+        }
         try:
-            response = await self.session.get(url)
+            response = await self.session.post(url, json=json_data)
             response_data = await response.json()
-            self.credit = response_data['data']
+            checkInStatus = response_data['data']['userDetail']['checkInStatus']
+            self.todayCount = checkInStatus['todayCount']
+            self.checkInDays = checkInStatus['checkInDays']
         except Exception as ex:
-            print(f"Error in get_info(): {ex}")
+            print(f"Error in get_graphl(): {ex}")
 
     async def make_transaction(self):
         contract_address = '0xB342e7D33b806544609370271A8D074313B7bc30'
