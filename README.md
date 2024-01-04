@@ -1,3 +1,3 @@
-Установить из requirements
-Создать папку inputs и туда 2 .txt(proxies.txt, keys.txt)
-Запускать main.py
+Download libraries from requirements.txt
+Make 2 files in inputs folder(proxies.txt, keys.txt)
+Run main.py
