@@ -34,7 +34,8 @@ class Qna3:
                 'wallet_address': self.account.address,
                 'signature': self.account.get_signed_code(msg),
             }
-
+            if REFFERAL_CODE.strip():
+                json_data['invite_code'] = REFFERAL_CODE
             params = {
                 'via': 'wallet',
             }
