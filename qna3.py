@@ -83,25 +83,31 @@ class Qna3:
     async def make_transaction(self):
         contract_address = '0xB342e7D33b806544609370271A8D074313B7bc30'
         data = '0xe95a644f0000000000000000000000000000000000000000000000000000000000000001'
-        gas_estimate = await self.account.w3.eth.estimate_gas({
-            'to': contract_address,
-            'data': data
-        })
-        transaction = {
-            'chainId': 204,
-            'to': contract_address,
-            'gas': gas_estimate,
-            'gasPrice': await self.account.w3.eth.gas_price,
-            'nonce': await self.account.w3.eth.get_transaction_count(self.account.address),
-            'data': data
 
-        }
         try:
+            gas_estimate = await self.account.w3.eth.estimate_gas({
+                'to': contract_address,
+                'data': data
+            })
+
+            transaction = {
+                'chainId': 204,
+                'to': contract_address,
+                'gas': gas_estimate,
+                'gasPrice': await self.account.w3.eth.gas_price,
+                'nonce': await self.account.w3.eth.get_transaction_count(self.account.address),
+                'data': data
+            }
+
             signed_transaction = self.account.w3.eth.account.sign_transaction(transaction, self.account.key)
             transaction_hash = await self.account.w3.eth.send_raw_transaction(signed_transaction.rawTransaction)
+
             transaction_receipt = await self.account.w3.eth.wait_for_transaction_receipt(transaction_hash)
-            if transaction_receipt:
+
+            if transaction_receipt and transaction_receipt['status'] == 1:
                 return transaction_hash.hex()
+            else:
+                print(f"Transaction failed. Status: {transaction_receipt['status'] if transaction_receipt else 'unknown'}")
         except Exception as ex:
             print(f"Error in make_transaction(): {ex}")
 
