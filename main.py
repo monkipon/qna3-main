@@ -3,6 +3,7 @@ import random
 import time
 from utils import *
 import asyncio
+from config import THREADS
 
 
 async def process_private_key(private_key, proxies, semaphore):
@@ -19,7 +20,7 @@ async def main():
     private_keys = await read_private_keys('./inputs/keys.txt')
     proxies = await read_proxies('./inputs/proxies.txt')
 
-    semaphore = asyncio.Semaphore(10)
+    semaphore = asyncio.Semaphore(THREADS)
 
     tasks = [process_private_key(private_key, proxies, semaphore) for private_key in private_keys]
 
