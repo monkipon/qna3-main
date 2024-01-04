@@ -1,7 +1,7 @@
 import aiohttp
 import pyuseragents
 from web3utils import *
-
+from config import REFFERAL_CODE
 
 class Qna3:
     def __init__(self, key, proxy: str = None):
