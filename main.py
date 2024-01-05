@@ -7,14 +7,8 @@ import asyncio
 from config import THREADS
 
 
-async def process_private_key(private_key, proxies, semaphore):
+async def process_private_key(private_key, proxy, semaphore):
     async with semaphore:
-        proxy_index = 0 if proxies else None
-        if proxy_index is not None and len(proxies) > 0:
-            proxy = proxies[proxy_index % len(proxies)]
-        else:
-            proxy = None
-        
         qna3_bot = Qna3(private_key, proxy)
         await qna3_bot.get_graphl()
 
@@ -25,6 +19,8 @@ async def process_private_key(private_key, proxies, semaphore):
             print(f"{qna3_bot.account.address} | {qna3_bot.checkInDays} | {qna3_bot.todayCount} | {qna3_bot.proxy_ip}")
 
         await qna3_bot.close_session()
+
+
 
 
 def make_art():
@@ -42,7 +38,7 @@ async def main():
 
     semaphore = asyncio.Semaphore(THREADS)
 
-    tasks = [process_private_key(private_key, proxies, semaphore) for private_key in private_keys]
+    tasks = [process_private_key(private_key, proxies[i % len(proxies)], semaphore) for i, private_key in enumerate(private_keys)]
 
     await asyncio.gather(*tasks)
 
