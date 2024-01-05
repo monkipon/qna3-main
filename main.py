@@ -9,14 +9,21 @@ from config import THREADS
 
 async def process_private_key(private_key, proxies, semaphore):
     async with semaphore:
-        proxy = random.choice(proxies) if proxies else None
+        proxy_index = 0 if proxies else None
+        if proxy_index is not None and len(proxies) > 0:
+            proxy = proxies[proxy_index % len(proxies)]
+        else:
+            proxy = None
+        
         qna3_bot = Qna3(private_key, proxy)
         await qna3_bot.get_graphl()
+
         if qna3_bot.todayCount == 0:
             result = await qna3_bot.verify_transaction()
             print(f"{qna3_bot.account.address} | {result} | {qna3_bot.proxy_ip}")
         else:
             print(f"{qna3_bot.account.address} | {qna3_bot.checkInDays} | {qna3_bot.todayCount} | {qna3_bot.proxy_ip}")
+
         await qna3_bot.close_session()
 
 
