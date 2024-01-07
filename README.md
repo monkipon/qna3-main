@@ -4,6 +4,8 @@ Create folder named "inputs"
 
 Make 2 files in inputs folder(proxies.txt, keys.txt)
 
+ip:port:login:pass
+
 Run main.py
 
 Dont recommend use more than 3-5 threads
