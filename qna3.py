@@ -117,17 +117,28 @@ class Qna3:
             print(f"Error in make_transaction(): {ex}")
 
     async def verify_transaction(self):
-        if self.token is None:
-            await self.get_token()
+        try:
+            if self.token is None:
+                await self.get_token()
 
-        tx_hash = await self.make_transaction()
+            tx_hash = await self.make_transaction()
 
-        url = 'https://api.qna3.ai/api/v2/my/check-in'
-        json_data = {"hash": f"{tx_hash}",
-                     "via": 'opbnb'}
+            url = 'https://api.qna3.ai/api/v2/my/check-in'
+            if tx_hash:
+                json_data = {"hash": f"{tx_hash}",
+                             "via": 'opbnb'}
 
-        response = await self.session.post(url, json=json_data, proxy=self.proxy)
-        return await response.text()
+                response = await self.session.post(url, json=json_data, proxy=self.proxy)
+
+                if response.status == 500:
+                    await asyncio.sleep(2)
+                    response = await self.session.post(url, json=json_data, proxy=self.proxy)
+
+                return await response.text()
+
+        except Exception as ex:
+            print(f"Error in verify_transaction(): {ex}")
+            return None  # или любое другое значение по умолчанию
 
     async def close_session(self):
         if self.session and not self.session.closed:
