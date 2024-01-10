@@ -1,3 +1,5 @@
+import asyncio
+
 import aiohttp
 import pyuseragents
 from web3utils import *
@@ -28,6 +30,7 @@ class Qna3:
             'user-agent': pyuseragents.random(),
             'x-lang': 'english',
         }
+
         self.session = aiohttp.ClientSession(headers=headers)
 
     async def get_token(self):
@@ -44,7 +47,7 @@ class Qna3:
             }
 
             url = "https://api.qna3.ai/api/v2/auth/login"
-            response = await self.session.post(url, json=json_data, params=params)
+            response = await self.session.post(url, json=json_data, params=params, proxy=self.proxy)
             response_data = await response.json()
             self.token = response_data.get('data', {}).get('accessToken')
             if self.token:
@@ -72,7 +75,8 @@ class Qna3:
             },
         }
         try:
-            response = await self.session.post(url, json=json_data)
+            response = await self.session.post(url, json=json_data, proxy=self.proxy)
+            await asyncio.sleep(3)
             response_data = await response.json()
             checkInStatus = response_data['data']['userDetail']['checkInStatus']
             self.todayCount = checkInStatus['todayCount']
@@ -107,7 +111,8 @@ class Qna3:
             if transaction_receipt and transaction_receipt['status'] == 1:
                 return transaction_hash.hex()
             else:
-                print(f"Transaction failed. Status: {transaction_receipt['status'] if transaction_receipt else 'unknown'}")
+                print(
+                    f"Transaction failed. Status: {transaction_receipt['status'] if transaction_receipt else 'unknown'}")
         except Exception as ex:
             print(f"Error in make_transaction(): {ex}")
 
@@ -121,7 +126,7 @@ class Qna3:
         json_data = {"hash": f"{tx_hash}",
                      "via": 'opbnb'}
 
-        response = await self.session.post(url, json=json_data)
+        response = await self.session.post(url, json=json_data, proxy=self.proxy)
         return await response.text()
 
     async def close_session(self):
