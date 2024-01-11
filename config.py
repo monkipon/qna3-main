@@ -1,2 +1,3 @@
 REFFERAL_CODE = ""
-THREADS = 1
+THREADS = 3
+CLAIM = False
