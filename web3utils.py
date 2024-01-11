@@ -5,26 +5,25 @@ from web3.eth import AsyncEth
 
 
 class Web3Utils:
-    def __init__(self, rpc: str = None, key: str = None, is_async: bool = False):
+    def __init__(self, rpc: str = None, key: str = None):
         self.w3 = None
         if key:
             self.mnemonic = ""
             self.account = Account.from_key(key)
             self.address = self.account.address
             self.key = key
-        self.is_async = is_async
         self.define_new_provider(rpc)
 
-    async def get_balance(self, address: str | None = None):
+    def get_balance(self, address: str | None = None):
         if not address:
             address = self.address
-        return await self.w3.eth.get_balance(account=address)
+        return self.w3.eth.get_balance(account=address)
 
-    def define_new_provider(self, http_provider: str):
-        if self.is_async:
+    def define_new_provider(self, http_provider: str, is_async: bool = False):
+        if is_async:
             self.w3 = Web3(Web3.AsyncHTTPProvider(http_provider), modules={'eth': (AsyncEth,)}, middlewares=[])
         else:
-            self.w3 = Web3(Web3.AsyncHTTPProvider(http_provider),)
+            self.w3 = Web3(Web3.HTTPProvider(http_provider),)
 
     def create_wallet(self):
         self.account, self.mnemonic = Account.create_with_mnemonic()
