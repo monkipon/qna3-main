@@ -102,7 +102,6 @@ class Qna3:
                 'nonce': await self.account.w3.eth.get_transaction_count(self.account.address),
                 'data': data
             }
-            print(self.account.key)
             signed_transaction = self.account.w3.eth.account.sign_transaction(transaction, self.account.key)
             transaction_hash = await self.account.w3.eth.send_raw_transaction(signed_transaction.rawTransaction)
 
